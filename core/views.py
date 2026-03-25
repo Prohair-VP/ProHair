@@ -1,7 +1,7 @@
 # views.py
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
-from .services import obter_produtos, salvar_novo_produto, editar_produto_json, excluir_produto_json
+from .services import obter_produtos, salvar_novo_produto, editar_produto_json, excluir_produto_json, calcular_metricas_shopee
 
 def produtos_view(request):
     # --- BLOCO ÚNICO DE PROCESSAMENTO (POST) ---
@@ -113,12 +113,29 @@ def produtos_view(request):
 
 def shopee_view(request):
     lista_de_produtos = obter_produtos()
+    
+    # Processamos as métricas de forma blindada
+    for p in lista_de_produtos:
+        try:
+            # Garantimos que os valores sejam números, mesmo se o JSON falhar
+            venda = float(p.get('preco_shopee', 0) or 0)
+            custo = float(p.get('preco_custo', 0) or 0)
+            
+            # Chama a função de métricas do services.py
+            metricas = calcular_metricas_shopee(venda, custo)
+            p['total_taxas'] = metricas['total_taxas']
+            p['lucro_reais'] = metricas['lucro_reais']
+        except (ValueError, TypeError):
+            # Se o dado estiver "sujo", zeramos para não derrubar o servidor
+            p['total_taxas'] = 0.0
+            p['lucro_reais'] = 0.0
+
+    # Lógica de paginação e filtros (reutilizando o que você já tem)
     paginator = Paginator(lista_de_produtos, 10)
     page_obj = paginator.get_page(request.GET.get('page', 1))
 
     contexto = {
         'page_obj': page_obj,
         'marketplace_nome': 'Shopee Official',
-        'cor_destaque': 'orange-500',
     }
     return render(request, 'shopee.html', contexto)

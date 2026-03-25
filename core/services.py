@@ -98,3 +98,36 @@ def excluir_produto_json(sku_alvo):
     except Exception as e:
         print(f"Erro ao deletar: {e}")
         return False
+
+def calcular_metricas_shopee(preco_venda, preco_custo):
+    if not preco_venda or preco_venda <= 0:
+        return {"total_taxas": 0, "lucro_reais": 0}
+
+    # 1. Taxas Internas Fixas (35%)
+    # [14% Imposto + 10% Ads + 5% Vendedor + 5% Afiliados + 1% Devolução]
+    percentual_interno = 0.35 
+
+    # 2. Regra de Comissão Shopee baseada na sua tabela
+    if preco_venda <= 79.99:
+        percentual_shopee = 0.20
+        taxa_fixa_shopee = 4.00
+    elif preco_venda <= 99.99:
+        percentual_shopee = 0.14
+        taxa_fixa_shopee = 16.00
+    elif preco_venda <= 199.99:
+        percentual_shopee = 0.14
+        taxa_fixa_shopee = 20.00
+    else: # Acima de 200
+        percentual_shopee = 0.14
+        taxa_fixa_shopee = 26.00
+
+    # 3. Cálculo Final
+    # As % são somadas sobre o valor cheio
+    total_percentual = percentual_interno + percentual_shopee
+    total_taxas = (preco_venda * total_percentual) + taxa_fixa_shopee
+    lucro = preco_venda - total_taxas - preco_custo
+
+    return {
+        "total_taxas": round(total_taxas, 2),
+        "lucro_reais": round(lucro, 2)
+    }
