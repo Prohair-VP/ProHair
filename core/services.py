@@ -53,3 +53,28 @@ def salvar_novo_produto(dados_produto):
         print(f"Erro fatal ao escrever no JSON: {e}")
         return False
     
+def editar_produto_json(sku_original, novos_dados):
+    """
+    Localiza um produto pelo SKU original e substitui pelos novos dados no arquivo JSON.
+    """
+    caminho_arquivo = os.path.join(settings.BASE_DIR, 'core', 'data', 'produtos.json')
+    
+    # 1. Carregamos a lista atual
+    with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
+        produtos = json.load(arquivo)
+
+    # 2. Procuramos o índice do produto que queremos editar
+    sucesso = False
+    for i, produto in enumerate(produtos):
+        if produto['sku'] == sku_original:
+            # 3. Atualizamos mantendo campos que não estão no formulário (como peso e medidas)
+            produtos[i].update(novos_dados)
+            sucesso = True
+            break
+            
+    # 4. Se encontramos, salvamos o arquivo inteiro de volta
+    if sucesso:
+        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
+            json.dump(produtos, arquivo, indent=4, ensure_ascii=False)
+            
+    return sucesso

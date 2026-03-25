@@ -1,7 +1,38 @@
-from django.shortcuts import render, redirect # 1. Importamos o redirect
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
-from .services import obter_produtos, salvar_novo_produto # 2. Importamos a função de salvar
+from .services import obter_produtos, salvar_novo_produto,editar_produto_json
 
+def produtos_view(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        sku_atual = request.POST.get('sku', '').strip()
+        nome = request.POST.get('nome_produto', '').strip()
+        categoria = request.POST.get('categoria', '').strip()
+        preco_raw = request.POST.get('preco_custo', '0')
+
+        # Tratamento de preço (essencial para itens como Banana e Mel)
+        try:
+            preco_final = float(preco_raw.replace('.', '').replace(',', '.'))
+        except ValueError:
+            preco_final = 0.0
+
+        dados_produto = {
+            "sku": sku_atual,
+            "nome_produto": nome,
+            "categoria": categoria,
+            "preco_custo": preco_final,
+        }
+
+        if action == 'edit':
+            # Recuperamos o SKU que o item tinha antes da edição abrir
+            sku_original = request.POST.get('sku_original')
+            editar_produto_json(sku_original, dados_produto)
+        else:
+            # Caso contrário, segue o fluxo de criação normal
+            salvar_novo_produto(dados_produto)
+
+        return redirect('produtos')
+    
 def produtos_view(request):
     if request.method == 'POST':
         # Captura os valores com segurança (.get com fallback vazio)

@@ -7898,5 +7898,15 @@
         "comprimento_cm": 0.0,
         "largura_cm": 0.0,
         "altura_cm": 0.0
+    },
+    {
+        "sku": "KIT390G",
+        "nome_produto": "Kits aaaaa",
+        "categoria": "Kits",
+        "preco_custo": 0.0,
+        "peso_bruto": 0.0,
+        "comprimento_cm": 0.0,
+        "largura_cm": 0.0,
+        "altura_cm": 0.0
     }
 ]
