@@ -78,3 +78,23 @@ def editar_produto_json(sku_original, novos_dados):
             json.dump(produtos, arquivo, indent=4, ensure_ascii=False)
             
     return sucesso
+
+def excluir_produto_json(sku_alvo):
+    # 1. Localiza o arquivo corretamente
+    caminho_arquivo = os.path.join(settings.BASE_DIR, 'core', 'data', 'produtos.json')
+    
+    # 2. Abre e lê a lista atual
+    with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
+        produtos = json.load(arquivo)
+    
+    # 3. Cria uma nova lista EXCLUINDO o SKU alvo (ex: 1010003 do Shampoo Banana e Mel)
+    nova_lista = [p for p in produtos if p['sku'] != sku_alvo]
+    
+    # 4. Salva a lista limpa de volta no arquivo
+    try:
+        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
+            json.dump(nova_lista, arquivo, indent=4, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Erro ao deletar: {e}")
+        return False

@@ -1,18 +1,26 @@
+# views.py
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
-from .services import obter_produtos, salvar_novo_produto,editar_produto_json
+from .services import obter_produtos, salvar_novo_produto, editar_produto_json, excluir_produto_json
 
 def produtos_view(request):
+    # --- BLOCO ÚNICO DE PROCESSAMENTO (POST) ---
     if request.method == 'POST':
         action = request.POST.get('action')
+        sku_original = request.POST.get('sku_original')
+        
+        if action == 'delete':
+            if excluir_produto_json(sku_original):
+                return redirect('produtos')
+
         sku_atual = request.POST.get('sku', '').strip()
         nome = request.POST.get('nome_produto', '').strip()
         categoria = request.POST.get('categoria', '').strip()
         preco_raw = request.POST.get('preco_custo', '0')
 
-        # Tratamento de preço (essencial para itens como Banana e Mel)
         try:
-            preco_final = float(preco_raw.replace('.', '').replace(',', '.'))
+            preco_limpo = preco_raw.replace('.', '').replace(',', '.')
+            preco_final = float(preco_limpo)
         except ValueError:
             preco_final = 0.0
 
@@ -21,61 +29,42 @@ def produtos_view(request):
             "nome_produto": nome,
             "categoria": categoria,
             "preco_custo": preco_final,
-        }
-
-        if action == 'edit':
-            # Recuperamos o SKU que o item tinha antes da edição abrir
-            sku_original = request.POST.get('sku_original')
-            editar_produto_json(sku_original, dados_produto)
-        else:
-            # Caso contrário, segue o fluxo de criação normal
-            salvar_novo_produto(dados_produto)
-
-        return redirect('produtos')
-    
-def produtos_view(request):
-    if request.method == 'POST':
-        # Captura os valores com segurança (.get com fallback vazio)
-        sku = request.POST.get('sku', '').strip()
-        nome = request.POST.get('nome_produto', '').strip()
-        categoria = request.POST.get('categoria', '').strip()
-        preco_raw = request.POST.get('preco_custo', '0')
-
-        # Tratamento de erro para o preço (essencial para itens como o de Banana e Mel)
-        try:
-            # Remove pontos de milhar, troca vírgula por ponto e converte
-            preco_limpo = preco_raw.replace('.', '').replace(',', '.')
-            preco_final = float(preco_limpo)
-        except ValueError:
-            preco_final = 0.0
-
-        novo_item = {
-            "sku": sku,
-            "nome_produto": nome,
-            "categoria": categoria,
-            "preco_custo": preco_final,
             "peso_bruto": 0.0,
             "comprimento_cm": 0.0,
             "largura_cm": 0.0,
             "altura_cm": 0.0
         }
-        
-        if salvar_novo_produto(novo_item):
-            return redirect('produtos')
+
+        if action == 'edit':
+            editar_produto_json(sku_original, dados_produto)
         else:
-            # Se der erro no serviço, o Django não crasha, apenas segue (podemos tratar depois)
-            pass
+            salvar_novo_produto(dados_produto)
+
+        return redirect('produtos')
+    
+    # --- BLOCO DE LISTAGEM (GET) ---
     lista_de_produtos = obter_produtos()
     
+    # 1. CAPTURA O MARKETPLACE DA URL
+    marketplace_slug = request.GET.get('mkt', 'todos')
+    
+    # Converte o slug (ex: mercado_livre) para um nome bonito (Mercado Livre)
+    if marketplace_slug == 'todos':
+        marketplace_nome = 'Produtos'
+    else:
+        marketplace_nome = marketplace_slug.replace('_', ' ').title()
+
     todas_categorias = sorted(list(set(p.get('categoria') for p in lista_de_produtos if p.get('categoria'))))
 
     search_query = request.GET.get('q', '').strip()
     categoria_filtrada = request.GET.get('categoria', '').strip()
     
     if search_query:
+        query = search_query.lower()
         lista_de_produtos = [
             p for p in lista_de_produtos 
-            if search_query.lower() in p.get('nome_produto', '').lower()
+            if query in p.get('nome_produto', '').lower() or 
+            query in str(p.get('sku', '')).lower()
         ]
         
     if categoria_filtrada:
@@ -100,12 +89,15 @@ def produtos_view(request):
     total_paginas = paginator.num_pages
     start_page = max(pagina_atual - 1, 1)
     end_page = min(pagina_atual + 1, total_paginas)
+    
     if pagina_atual == 1 and total_paginas >= 3:
         end_page = 3
     elif pagina_atual == total_paginas and total_paginas >= 3:
         start_page = total_paginas - 2
+        
     page_range = range(start_page, end_page + 1)
     
+    # 2. ADICIONA O NOME DO MARKETPLACE AO CONTEXTO
     contexto = {
         'page_obj': page_obj,
         'per_page': itens_por_pagina,
@@ -113,6 +105,20 @@ def produtos_view(request):
         'search_query': search_query,
         'categorias': todas_categorias,
         'categoria_selecionada': categoria_filtrada,
+        'marketplace_nome': marketplace_nome, # Nome que aparecerá no título
+        'mkt': marketplace_slug # Slug para manter o filtro nas próximas páginas
     }
     
     return render(request, 'produtos.html', contexto)
+
+def shopee_view(request):
+    lista_de_produtos = obter_produtos()
+    paginator = Paginator(lista_de_produtos, 10)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    contexto = {
+        'page_obj': page_obj,
+        'marketplace_nome': 'Shopee Official',
+        'cor_destaque': 'orange-500',
+    }
+    return render(request, 'shopee.html', contexto)
