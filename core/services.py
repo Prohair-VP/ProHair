@@ -21,3 +21,35 @@ def obter_produtos():
     except json.JSONDecodeError:
         print("Atenção: O arquivo JSON possui erros de formatação.")
         return []
+    
+def salvar_novo_produto(dados_produto):
+    # 1. Define o caminho da pasta e do arquivo
+    pasta_data = os.path.join(settings.BASE_DIR, 'core', 'data')
+    caminho_arquivo = os.path.join(pasta_data, 'produtos.json')
+    
+    # 2. Segurança: Se a pasta 'data' não existir, o Python cria ela agora
+    if not os.path.exists(pasta_data):
+        os.makedirs(pasta_data)
+
+    # 3. Tenta carregar os produtos atuais
+    produtos = []
+    if os.path.exists(caminho_arquivo):
+        try:
+            with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
+                produtos = json.load(arquivo)
+        except json.JSONDecodeError:
+            # Se o arquivo estiver corrompido ou vazio, começamos do zero
+            produtos = []
+
+    # 4. Adiciona o novo item
+    produtos.append(dados_produto)
+    
+    # 5. Salva no arquivo
+    try:
+        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
+            json.dump(produtos, arquivo, indent=4, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Erro fatal ao escrever no JSON: {e}")
+        return False
+    

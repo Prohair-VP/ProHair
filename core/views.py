@@ -1,19 +1,46 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect # 1. Importamos o redirect
 from django.core.paginator import Paginator
-from .services import obter_produtos
+from .services import obter_produtos, salvar_novo_produto # 2. Importamos a função de salvar
 
 def produtos_view(request):
+    if request.method == 'POST':
+        # Captura os valores com segurança (.get com fallback vazio)
+        sku = request.POST.get('sku', '').strip()
+        nome = request.POST.get('nome_produto', '').strip()
+        categoria = request.POST.get('categoria', '').strip()
+        preco_raw = request.POST.get('preco_custo', '0')
+
+        # Tratamento de erro para o preço (essencial para itens como o de Banana e Mel)
+        try:
+            # Remove pontos de milhar, troca vírgula por ponto e converte
+            preco_limpo = preco_raw.replace('.', '').replace(',', '.')
+            preco_final = float(preco_limpo)
+        except ValueError:
+            preco_final = 0.0
+
+        novo_item = {
+            "sku": sku,
+            "nome_produto": nome,
+            "categoria": categoria,
+            "preco_custo": preco_final,
+            "peso_bruto": 0.0,
+            "comprimento_cm": 0.0,
+            "largura_cm": 0.0,
+            "altura_cm": 0.0
+        }
+        
+        if salvar_novo_produto(novo_item):
+            return redirect('produtos')
+        else:
+            # Se der erro no serviço, o Django não crasha, apenas segue (podemos tratar depois)
+            pass
     lista_de_produtos = obter_produtos()
     
-    # 1. Extraímos todas as categorias únicas do JSON completo para o filtro
-    # Usamos set() para não repetir e sorted() para ficar em ordem alfabética
     todas_categorias = sorted(list(set(p.get('categoria') for p in lista_de_produtos if p.get('categoria'))))
 
-    # 2. Capturamos os filtros da URL
     search_query = request.GET.get('q', '').strip()
     categoria_filtrada = request.GET.get('categoria', '').strip()
     
-    # 3. Lógica de Filtragem Dupla (Nome E Categoria)
     if search_query:
         lista_de_produtos = [
             p for p in lista_de_produtos 
@@ -26,7 +53,6 @@ def produtos_view(request):
             if p.get('categoria') == categoria_filtrada
         ]
 
-    # --- (Lógica de Paginação e Itens por Página mantida abaixo) ---
     itens_por_pagina = request.GET.get('per_page', 10)
     try:
         itens_por_pagina = int(itens_por_pagina)
@@ -39,7 +65,6 @@ def produtos_view(request):
     numero_da_pagina = request.GET.get('page', 1)
     page_obj = paginator.get_page(numero_da_pagina)
     
-    # Lógica da Janela Deslizante (Mantida)
     pagina_atual = page_obj.number
     total_paginas = paginator.num_pages
     start_page = max(pagina_atual - 1, 1)
@@ -55,8 +80,8 @@ def produtos_view(request):
         'per_page': itens_por_pagina,
         'page_range': page_range,
         'search_query': search_query,
-        'categorias': todas_categorias, # Enviamos a lista para o select
-        'categoria_selecionada': categoria_filtrada, # Para manter o select marcado
+        'categorias': todas_categorias,
+        'categoria_selecionada': categoria_filtrada,
     }
     
     return render(request, 'produtos.html', contexto)

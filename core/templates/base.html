@@ -48,35 +48,41 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #0891b2;
         }
+
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="text-gray-300 font-sans antialiased min-h-screen flex flex-col">
 
     <nav class="bg-[#09090b] border-b border-gray-800">
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+            <div class="flex items-center justify-start h-16 gap-12">
+                
                 <div class="flex-shrink-0 flex items-center gap-2">
                     <div class="bg-cyan-900/40 p-1.5 rounded-md">
-                        <svg class="h-5 w-5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        <svg class="h-5 w-5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
                     </div>
-                    <span class="text-xl font-bold text-white tracking-wide">ProHair</span>
+                    <span class="text-xl font-bold text-white tracking-wide">Prohair</span>
                 </div>
                 
-                <div class="flex gap-8">
-                    <a href="#" class="bg-[#003A4D] text-cyan-400 px-4 py-1.5 rounded-lg text-sm font-semibold flex items-center">
+                <div class="flex items-center gap-6">
+                    <a href="#" class="bg-[#003A4D] text-cyan-400 px-4 py-1.5 rounded-lg text-sm font-semibold flex items-center transition-all">
                         Produtos
                     </a>
-                    <a href="#" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium flex items-center transition">
+                    
+                    <a href="#" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium flex items-center transition-all">
                         Relatórios
                     </a>
-                    <a href="#" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium flex items-center transition">
+                    <a href="#" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium flex items-center transition-all">
                         Clientes
                     </a>
-                    <a href="#" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium flex items-center transition">
+                    <a href="#" class="text-gray-400 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium flex items-center transition-all">
                         Configurações
                     </a>
                 </div>
-                <div class="w-24"></div> 
+
             </div>
         </div>
     </nav>
