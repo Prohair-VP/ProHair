@@ -112,25 +112,63 @@ def produtos_view(request):
     return render(request, 'produtos.html', contexto)
 
 def shopee_view(request):
+    # --- BLOCO DE PROCESSAMENTO (POST) ---
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        sku_original = request.POST.get('sku_original')
+        
+        # Captura os campos de texto
+        sku_atual = request.POST.get('sku', '').strip()
+        nome = request.POST.get('nome_produto', '').strip()
+        categoria = request.POST.get('categoria', '').strip()
+        
+        # Tratamento seguro para números (Custo, Shopee e Promo)
+        def limpar_moeda(valor_string):
+            try:
+                return float(valor_string.replace('.', '').replace(',', '.'))
+            except ValueError:
+                return 0.0
+
+        preco_custo = limpar_moeda(request.POST.get('preco_custo', '0'))
+        preco_shopee = limpar_moeda(request.POST.get('preco_shopee', '0'))
+        preco_promo = limpar_moeda(request.POST.get('preco_promocional', '0'))
+
+        dados_novos = {
+            "sku": sku_atual,
+            "nome_produto": nome,
+            "categoria": categoria,
+            "preco_custo": preco_custo,
+            "preco_shopee": preco_shopee,
+            "preco_promocional": preco_promo
+        }
+
+        if action == 'edit':
+            editar_produto_json(sku_original, dados_novos)
+            
+        return redirect('shopee')
+
+    # --- BLOCO DE LISTAGEM (GET) ---
     lista_de_produtos = obter_produtos()
     
     # Processamos as métricas de forma blindada
     for p in lista_de_produtos:
         try:
-            # Garantimos que os valores sejam números, mesmo se o JSON falhar
-            venda = float(p.get('preco_shopee', 0) or 0)
+            venda_cheia = float(p.get('preco_shopee', 0) or 0)
+            venda_promo = float(p.get('preco_promocional', 0) or 0)
             custo = float(p.get('preco_custo', 0) or 0)
             
-            # Chama a função de métricas do services.py
-            metricas = calcular_metricas_shopee(venda, custo)
+            # A MÁGICA ACONTECE AQUI: Usa a promoção se existir, senão usa o cheio
+            preco_efetivo = venda_promo if venda_promo > 0 else venda_cheia
+            
+            # Calcula em cima do preço real que o cliente vai pagar
+            metricas = calcular_metricas_shopee(preco_efetivo, custo)
             p['total_taxas'] = metricas['total_taxas']
             p['lucro_reais'] = metricas['lucro_reais']
         except (ValueError, TypeError):
-            # Se o dado estiver "sujo", zeramos para não derrubar o servidor
             p['total_taxas'] = 0.0
             p['lucro_reais'] = 0.0
 
-    # Lógica de paginação e filtros (reutilizando o que você já tem)
+    # Lógica de paginação
     paginator = Paginator(lista_de_produtos, 10)
     page_obj = paginator.get_page(request.GET.get('page', 1))
 

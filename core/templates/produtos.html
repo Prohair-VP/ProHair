@@ -15,7 +15,7 @@
             <h1 class="text-3xl font-bold text-white tracking-tight">Produtos</h1>
             <p class="mt-1 text-sm text-gray-400">Catálogo de produtos da ProHair</p>
         </div>
-        <button @click="editando = false; modalAberto = true; form = { sku: '', nome: '', categoria: '', preco: '' }"
+        <button @click="editando = false; modalAberto = true; form = { sku: '', nome: '', linhas: '', preco: '' }"
                 class="group relative inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-2.5 rounded-full text-sm font-bold text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95">
             <div class="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <span class="material-symbols-outlined text-[20px] font-bold">add</span>
@@ -56,7 +56,7 @@
         </div>
     </div>
     <div class="flex items-center gap-4">
-        <form method="GET" id="form-filtros" x-data="{ open: false, selected: '{{ categoria_selecionada|default:"Todas as Categorias" }}' }" class="flex flex-wrap items-center gap-3 w-full">
+        <form method="GET" id="form-filtros" x-data="{ open: false, selected: '{{ categoria_selecionada|default:"Todas as linhas" }}' }" class="flex flex-wrap items-center gap-3 w-full">
             <input type="hidden" name="per_page" value="{{ per_page }}">
             
             <div class="flex items-center w-80 bg-[#0f1115] border border-gray-800 rounded-lg focus-within:ring-1 focus-within:ring-cyan-500 transition-all group">
@@ -68,7 +68,7 @@
             </div>
 
             <div class="relative w-72">
-                <input type="hidden" name="categoria" :value="selected === 'Todas as Categorias' ? '' : selected">
+                <input type="hidden" name="categoria" :value="selected === 'Todas as linhas' ? '' : selected">
                 <button type="button" @click="open = !open" @click.away="open = false"
                         class="flex items-center justify-between w-full bg-[#0f1115] border border-gray-800 text-gray-300 py-2.5 px-4 rounded-lg text-sm transition-all hover:border-gray-700 focus:ring-1 focus:ring-cyan-500">
                     <span x-text="selected"></span>
@@ -76,9 +76,9 @@
                 </button>
                 <div x-show="open" x-cloak class="absolute z-50 w-full mt-2 bg-[#0f1115] border border-gray-800 rounded-xl shadow-2xl overflow-hidden">
                     <div class="max-h-64 overflow-y-auto custom-scrollbar">
-                        <div @click="selected = 'Todas as Categorias'; open = false; $nextTick(() => $el.closest('form').submit())"
+                        <div @click="selected = 'Todas as linhas'; open = false; $nextTick(() => $el.closest('form').submit())"
                              class="px-4 py-2.5 text-sm text-gray-400 hover:bg-cyan-600/10 hover:text-cyan-400 cursor-pointer transition-colors">
-                            Todas as Categorias
+                            Todas as linhas
                         </div>
                         {% for cat in categorias %}
                         <div @click="selected = '{{ cat }}'; open = false; $nextTick(() => $el.closest('form').submit())"
@@ -110,7 +110,7 @@
                     <tr>
                         <th class="px-6 py-4 font-semibold">SKU</th>
                         <th class="px-6 py-4 font-semibold">NOME DO PRODUTO</th>
-                        <th class="px-6 py-4 font-semibold">CATEGORIA</th>
+                        <th class="px-6 py-4 font-semibold">LINHAS</th>
                         <th class="px-6 py-4 font-semibold">CUSTO (R$)</th>
                         <th class="px-6 py-4 font-semibold">SHOPEE (R$)</th>
                         <th class="px-6 py-4 font-semibold">AÇÕES</th>
@@ -236,7 +236,7 @@
 
                 <div class="grid grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Categoria</label>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Linha</label>
                         <input type="text" name="categoria" x-model="form.categoria" required class="w-full bg-[#09090b] border border-gray-800 rounded-2xl py-4 px-5 text-gray-200 outline-none focus:border-cyan-500 transition-all">
                     </div>
                     <div>
