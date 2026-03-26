@@ -25,7 +25,7 @@
 
     {% include 'components/modal_delete.html' %}
     <div class="flex items-center gap-4">
-        <form method="GET" id="form-filtros" x-data="{ open: false, selected: '{{ categoria_selecionada|default:"Todas as linhas" }}' }" class="flex flex-wrap items-center gap-3 w-full">
+        <form method="GET" id="form-filtros" x-data="{ open: false, selected: '{{ categoria_selecionada|default:"Ver Todos os Produtos" }}' }" class="flex flex-wrap items-center gap-3 w-full">
             <input type="hidden" name="per_page" value="{{ per_page }}">
             
             <div class="flex items-center w-80 bg-[#0f1115] border border-gray-800 rounded-lg focus-within:ring-1 focus-within:ring-cyan-500 transition-all group">
@@ -37,7 +37,7 @@
             </div>
 
             <div class="relative w-72">
-                <input type="hidden" name="categoria" :value="selected === 'Todas as linhas' ? '' : selected">
+                <input type="hidden" name="categoria" :value="selected === 'Ver Todos os Produtos' ? '' : selected">
                 <button type="button" @click="open = !open" @click.away="open = false"
                         class="flex items-center justify-between w-full bg-[#0f1115] border border-gray-800 text-gray-300 py-2.5 px-4 rounded-lg text-sm transition-all hover:border-gray-700 focus:ring-1 focus:ring-cyan-500">
                     <span x-text="selected"></span>
@@ -45,9 +45,9 @@
                 </button>
                 <div x-show="open" x-cloak class="absolute z-50 w-full mt-2 bg-[#0f1115] border border-gray-800 rounded-xl shadow-2xl overflow-hidden">
                     <div class="max-h-64 overflow-y-auto custom-scrollbar">
-                        <div @click="selected = 'Todas as linhas'; open = false; $nextTick(() => $el.closest('form').submit())"
+                        <div @click="selected = 'Ver Todos os Produtos'; open = false; $nextTick(() => $el.closest('form').submit())"
                              class="px-4 py-2.5 text-sm text-gray-400 hover:bg-cyan-600/10 hover:text-cyan-400 cursor-pointer transition-colors">
-                            Todas as linhas
+                            Ver Todos os Produtos
                         </div>
                         {% for cat in categorias %}
                         <div @click="selected = '{{ cat }}'; open = false; $nextTick(() => $el.closest('form').submit())"
@@ -94,7 +94,9 @@
                             {% include 'components/badge_categoria.html' with categoria=produto.categoria size="text-[11px]" %}
                         </td>
                         <td class="px-6 py-4 text-[#00E676] font-semibold whitespace-nowrap">R$ {{ produto.preco_custo|floatformat:2 }}</td>
-                        <td class="px-6 py-4 text-gray-500 whitespace-nowrap">R$ 0,00</td>
+                        <td class="px-6 py-4 {% if produto.preco_promocional > 0 %}text-orange-400 font-semibold{% else %}text-gray-400{% endif %} whitespace-nowrap">
+                            R$ {% if produto.preco_promocional > 0 %}{{ produto.preco_promocional|floatformat:2 }}{% else %}{{ produto.preco_shopee|default:"0.00"|floatformat:2 }}{% endif %}
+                        </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3 text-gray-500">
                                 <button @click="
@@ -147,6 +149,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" :value="editando ? 'edit' : 'create'">
                 <input type="hidden" name="sku_original" :value="skuOriginal">
+                <input type="hidden" name="next_url" value="{{ query_string }}">
 
                 <div>
                     <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">SKU do Produto</label>

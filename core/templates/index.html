@@ -102,7 +102,7 @@
                             R$ {{ item.preco_efetivo|floatformat:2 }}
                         </td>
                         <td class="px-6 py-4 text-right whitespace-nowrap">
-                            <span class="font-black text-emerald-400">R$ {{ item.lucro|floatformat:2 }}</span>
+                            <span class="font-black {% if item.lucro > 0 %}text-emerald-400{% else %}text-red-500{% endif %}">R$ {{ item.lucro|floatformat:2 }}</span>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="px-2 py-1 rounded-md text-xs font-black {% if item.margem >= 36 %}bg-emerald-950/40 text-emerald-400 border border-emerald-500/20{% elif item.margem >= 26 %}bg-yellow-950/40 text-yellow-400 border border-yellow-500/20{% else %}bg-red-950/40 text-red-400 border border-red-500/20{% endif %}">

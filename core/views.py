@@ -1,5 +1,6 @@
 # views.py
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .services import (
@@ -20,8 +21,13 @@ def index_view(request):
     custo_total = sum(float(p.preco_custo or 0) for p in todos_produtos)
     custo_medio = custo_total / total_produtos if total_produtos > 0 else 0
     
-    # Calcular Top 5 Produtos mais Lucrativos da Shopee (Base 15% tx interna)
-    tx_interna = 15.0
+    # Calcular Top 5 Produtos mais Lucrativos da Shopee
+    tx_interna_str = request.GET.get('tx_interna', '35.0')
+    try:
+        tx_interna = float(tx_interna_str.replace(',', '.'))
+    except (ValueError, TypeError):
+        tx_interna = 35.0
+        
     frete = 0.0
     
     produtos_lucro = []
@@ -60,10 +66,11 @@ def produtos_view(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         sku_original = request.POST.get('sku_original')
+        next_url = request.POST.get('next_url', '')
 
         if action == 'delete':
             if excluir_produto(sku_original):
-                return redirect('produtos')
+                return redirect(f"{reverse('produtos')}?{next_url}" if next_url else 'produtos')
 
         sku_atual = request.POST.get('sku', '').strip()
         nome = request.POST.get('nome_produto', '').strip()
@@ -82,7 +89,7 @@ def produtos_view(request):
         else:
             salvar_novo_produto(dados_produto)
 
-        return redirect('produtos')
+        return redirect(f"{reverse('produtos')}?{next_url}" if next_url else 'produtos')
 
     # --- BLOCO DE LISTAGEM (GET) ---
     marketplace_slug = request.GET.get('mkt', 'todos')
@@ -135,6 +142,7 @@ def produtos_view(request):
         'categoria_selecionada': filtros['categoria'],
         'marketplace_nome': marketplace_nome,
         'mkt': marketplace_slug,
+        'query_string': request.GET.urlencode(),
     }
 
     return render(request, 'produtos.html', contexto)
@@ -146,10 +154,11 @@ def shopee_view(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         sku_original = request.POST.get('sku_original')
+        next_url = request.POST.get('next_url', '')
 
         if action == 'delete':
             excluir_produto(sku_original)
-            return redirect('shopee')
+            return redirect(f"{reverse('shopee')}?{next_url}" if next_url else 'shopee')
 
         sku_atual = request.POST.get('sku', '').strip()
         nome = request.POST.get('nome_produto', '').strip()
@@ -174,7 +183,7 @@ def shopee_view(request):
         else:
             salvar_novo_produto(dados_novos)
 
-        return redirect('shopee')
+        return redirect(f"{reverse('shopee')}?{next_url}" if next_url else 'shopee')
 
     # --- BLOCO DE LISTAGEM (GET) ---
     
@@ -264,5 +273,6 @@ def shopee_view(request):
         'tx_interna_atual': f"{tx_interna:.1f}".replace('.', ','),
         'frete_atual': f"{frete:.2f}".replace('.', ','),
         'marketplace_nome': 'Shopee Official',
+        'query_string': request.GET.urlencode(),
     }
     return render(request, 'shopee.html', contexto)

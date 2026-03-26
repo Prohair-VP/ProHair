@@ -26,7 +26,7 @@
 
     {% include 'components/modal_delete.html' %}
     <div class="flex items-center gap-4">
-        <form method="GET" id="form-filtros" x-data="{ open: false, selected: '{{ categoria_selecionada|default:"Todas as Linhas" }}' }" class="flex flex-wrap items-center gap-3 w-full">
+        <form method="GET" id="form-filtros" x-data="{ open: false, selected: '{{ categoria_selecionada|default:"Ver Todos os Produtos" }}' }" class="flex flex-wrap items-center gap-3 w-full">
             <input type="hidden" name="per_page" value="{{ per_page }}">
 
             <div
@@ -39,7 +39,7 @@
             </div>
 
             <div class="relative w-72">
-                <input type="hidden" name="categoria" :value="selected === 'Todas as Linhas' ? '' : selected">
+                <input type="hidden" name="categoria" :value="selected === 'Ver Todos os Produtos' ? '' : selected">
                 <button type="button" @click="open = !open" @click.away="open = false"
                     class="flex items-center justify-between w-full bg-[#0f1115] border border-gray-800 text-gray-300 py-2.5 px-4 rounded-lg text-sm transition-all hover:border-gray-700 focus:ring-1 focus:ring-orange-500">
                     <span x-text="selected"></span>
@@ -49,9 +49,9 @@
                 <div x-show="open" x-cloak
                     class="absolute z-50 w-full mt-2 bg-[#0f1115] border border-gray-800 rounded-xl shadow-2xl overflow-hidden">
                     <div class="max-h-64 overflow-y-auto custom-scrollbar">
-                        <div @click="selected = 'Todas as Linhas'; open = false; $nextTick(() => $el.closest('form').submit())"
+                        <div @click="selected = 'Ver Todos os Produtos'; open = false; $nextTick(() => $el.closest('form').submit())"
                             class="px-4 py-2.5 text-sm text-gray-400 hover:bg-orange-600/10 hover:text-orange-400 cursor-pointer transition-colors">
-                            Todas as Linhas
+                            Ver Todos os Produtos
                         </div>
                         {% for cat in categorias %}
                         <div @click="selected = '{{ cat }}'; open = false; $nextTick(() => $el.closest('form').submit())"
@@ -199,6 +199,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" :value="editando ? 'edit' : 'create'">
                 <input type="hidden" name="sku_original" :value="skuOriginal">
+                <input type="hidden" name="next_url" value="{{ query_string }}">
 
                 <div>
                     <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">SKU do

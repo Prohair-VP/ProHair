@@ -18,6 +18,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="sku_original" :value="skuOriginal">
+                <input type="hidden" name="next_url" value="{{ query_string }}">
                 
                 <button type="button" @click="modalExcluir = false"
                         class="flex-1 px-4 py-3 rounded-2xl border border-gray-800 text-gray-400 font-bold hover:bg-gray-800 transition-all">
