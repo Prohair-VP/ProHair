@@ -1,113 +1,97 @@
-import json
-import os
-from django.conf import settings
+# services.py — Camada de serviço usando Django ORM
+from core.models import Produto
 
-def obter_produtos():
+
+def obter_produtos(filtros=None):
     """
-    Lê o arquivo JSON de produtos e retorna uma lista de dicionários.
-    Se o arquivo não existir, retorna uma lista vazia.
+    Retorna queryset de produtos. Aceita dicionário de filtros opcionais.
+    Exemplo: {'categoria': 'Banana e mel', 'q': 'shampoo'}
     """
-    # Constrói o caminho absoluto de forma segura (funciona no Linux, Windows, Mac)
-    caminho_arquivo = os.path.join(settings.BASE_DIR, 'core', 'data', 'produtos.json')
-    
-    try:
-        # Lemos o arquivo forçando o encoding utf-8 para não termos problemas com acentuação
-        with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
-            produtos = json.load(arquivo)
-            return produtos
-    except FileNotFoundError:
-        print(f"Atenção: Arquivo não encontrado em {caminho_arquivo}")
-        return []
-    except json.JSONDecodeError:
-        print("Atenção: O arquivo JSON possui erros de formatação.")
-        return []
-    
-def salvar_novo_produto(dados_produto):
-    # 1. Define o caminho da pasta e do arquivo
-    pasta_data = os.path.join(settings.BASE_DIR, 'core', 'data')
-    caminho_arquivo = os.path.join(pasta_data, 'produtos.json')
-    
-    # 2. Segurança: Se a pasta 'data' não existir, o Python cria ela agora
-    if not os.path.exists(pasta_data):
-        os.makedirs(pasta_data)
+    qs = Produto.objects.all()
 
-    # 3. Tenta carregar os produtos atuais
-    produtos = []
-    if os.path.exists(caminho_arquivo):
-        try:
-            with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
-                produtos = json.load(arquivo)
-        except json.JSONDecodeError:
-            # Se o arquivo estiver corrompido ou vazio, começamos do zero
-            produtos = []
+    if filtros:
+        busca = filtros.get('q', '').strip()
+        categoria = filtros.get('categoria', '').strip()
 
-    # 4. Adiciona o novo item
-    produtos.append(dados_produto)
-    
-    # 5. Salva no arquivo
+        if busca:
+            qs = qs.filter(nome_produto__icontains=busca) | qs.filter(sku__icontains=busca)
+
+        if categoria:
+            qs = qs.filter(categoria=categoria)
+
+    return qs
+
+
+def obter_categorias():
+    """
+    Retorna lista de categorias únicas, ordenadas alfabeticamente.
+    """
+    return (
+        Produto.objects
+        .values_list('categoria', flat=True)
+        .distinct()
+        .order_by('categoria')
+    )
+
+
+def salvar_novo_produto(dados):
+    """
+    Cria um novo produto no banco de dados.
+    """
+    return Produto.objects.create(**dados)
+
+
+def editar_produto(sku_original, novos_dados):
+    """
+    Localiza um produto pelo SKU original e atualiza com os novos dados.
+    Retorna True se encontrou e atualizou, False se não encontrou.
+    """
     try:
-        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
-            json.dump(produtos, arquivo, indent=4, ensure_ascii=False)
+        produto = Produto.objects.get(sku=sku_original)
+        for campo, valor in novos_dados.items():
+            setattr(produto, campo, valor)
+        produto.save()
         return True
-    except Exception as e:
-        print(f"Erro fatal ao escrever no JSON: {e}")
-        return False
-    
-def editar_produto_json(sku_original, novos_dados):
-    """
-    Localiza um produto pelo SKU original e substitui pelos novos dados no arquivo JSON.
-    """
-    caminho_arquivo = os.path.join(settings.BASE_DIR, 'core', 'data', 'produtos.json')
-    
-    # 1. Carregamos a lista atual
-    with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
-        produtos = json.load(arquivo)
-
-    # 2. Procuramos o índice do produto que queremos editar
-    sucesso = False
-    for i, produto in enumerate(produtos):
-        if produto['sku'] == sku_original:
-            # 3. Atualizamos mantendo campos que não estão no formulário (como peso e medidas)
-            produtos[i].update(novos_dados)
-            sucesso = True
-            break
-            
-    # 4. Se encontramos, salvamos o arquivo inteiro de volta
-    if sucesso:
-        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
-            json.dump(produtos, arquivo, indent=4, ensure_ascii=False)
-            
-    return sucesso
-
-def excluir_produto_json(sku_alvo):
-    # 1. Localiza o arquivo corretamente
-    caminho_arquivo = os.path.join(settings.BASE_DIR, 'core', 'data', 'produtos.json')
-    
-    # 2. Abre e lê a lista atual
-    with open(caminho_arquivo, 'r', encoding='utf-8') as arquivo:
-        produtos = json.load(arquivo)
-    
-    # 3. Cria uma nova lista EXCLUINDO o SKU alvo (ex: 1010003 do Shampoo Banana e Mel)
-    nova_lista = [p for p in produtos if p['sku'] != sku_alvo]
-    
-    # 4. Salva a lista limpa de volta no arquivo
-    try:
-        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo:
-            json.dump(nova_lista, arquivo, indent=4, ensure_ascii=False)
-        return True
-    except Exception as e:
-        print(f"Erro ao deletar: {e}")
+    except Produto.DoesNotExist:
         return False
 
-def calcular_metricas_shopee(preco_venda, preco_custo):
+
+def excluir_produto(sku_alvo):
+    """
+    Exclui um produto pelo SKU.
+    Retorna True se encontrou e excluiu, False se não encontrou.
+    """
+    try:
+        produto = Produto.objects.get(sku=sku_alvo)
+        produto.delete()
+        return True
+    except Produto.DoesNotExist:
+        return False
+
+
+def limpar_moeda(valor_string):
+    """
+    Converte string no formato brasileiro (1.234,56) para float.
+    """
+    try:
+        return float(valor_string.replace('.', '').replace(',', '.'))
+    except (ValueError, AttributeError):
+        return 0.0
+
+
+def calcular_metricas_shopee(preco_venda, preco_custo, percentual_interno_custom=35.0, frete_extra=0.0):
+    """
+    Calcula taxas e lucro para um produto na Shopee.
+    Aceita percentual interno customizado e frete extra.
+    Retorna dict com total_taxas, lucro_reais e margem_percentual.
+    """
     if not preco_venda or preco_venda <= 0:
-        return {"total_taxas": 0, "lucro_reais": 0}
+        return {"total_taxas": 0, "lucro_reais": 0, "margem_percentual": 0}
 
-    # 1. Taxas Internas Fixas (35%)
-    # [14% Imposto + 10% Ads + 5% Vendedor + 5% Afiliados + 1% Devolução]
-    percentual_interno = 0.35 
+    # 1. Taxas Internas Fixas (Customizável pelo usuário, default 35%)
+    percentual_interno = percentual_interno_custom / 100.0
 
-    # 2. Regra de Comissão Shopee baseada na sua tabela
+    # 2. Regra de Comissão Shopee baseada na tabela
     if preco_venda <= 79.99:
         percentual_shopee = 0.20
         taxa_fixa_shopee = 4.00
@@ -117,17 +101,20 @@ def calcular_metricas_shopee(preco_venda, preco_custo):
     elif preco_venda <= 199.99:
         percentual_shopee = 0.14
         taxa_fixa_shopee = 20.00
-    else: # Acima de 200
+    else:
         percentual_shopee = 0.14
         taxa_fixa_shopee = 26.00
 
     # 3. Cálculo Final
-    # As % são somadas sobre o valor cheio
     total_percentual = percentual_interno + percentual_shopee
-    total_taxas = (preco_venda * total_percentual) + taxa_fixa_shopee
+    total_taxas = (preco_venda * total_percentual) + taxa_fixa_shopee + frete_extra
     lucro = preco_venda - total_taxas - preco_custo
+
+    # 4. Margem percentual
+    margem = (lucro / preco_venda) * 100 if preco_venda > 0 else 0
 
     return {
         "total_taxas": round(total_taxas, 2),
-        "lucro_reais": round(lucro, 2)
+        "lucro_reais": round(lucro, 2),
+        "margem_percentual": round(margem, 1),
     }

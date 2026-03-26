@@ -103,6 +103,19 @@
                     </a>
                 </div>
 
+                <!-- Botão de Sair (Logout) -->
+                <div class="ml-auto flex items-center">
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-gray-500 hover:text-red-400 px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-all">
+                                <span class="material-symbols-outlined text-[18px]">logout</span>
+                                Sair
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
             </div>
         </div>
     </nav>
