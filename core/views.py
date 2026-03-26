@@ -8,6 +8,52 @@ from .services import (
 )
 
 
+
+@login_required
+def index_view(request):
+    todos_produtos = obter_produtos()
+    
+    total_produtos = todos_produtos.count()
+    total_categorias = obter_categorias().count()
+    
+    # Calcular Custo Médio
+    custo_total = sum(float(p.preco_custo or 0) for p in todos_produtos)
+    custo_medio = custo_total / total_produtos if total_produtos > 0 else 0
+    
+    # Calcular Top 5 Produtos mais Lucrativos da Shopee (Base 15% tx interna)
+    tx_interna = 15.0
+    frete = 0.0
+    
+    produtos_lucro = []
+    for p in todos_produtos:
+        venda_cheia = float(p.preco_shopee or 0)
+        venda_promo = float(p.preco_promocional or 0)
+        custo = float(p.preco_custo or 0)
+        preco_efetivo = venda_promo if venda_promo > 0 else venda_cheia
+        
+        if preco_efetivo > 0:
+            metricas = calcular_metricas_shopee(preco_efetivo, custo, tx_interna, frete)
+            produtos_lucro.append({
+                'produto': p,
+                'lucro': metricas['lucro_reais'],
+                'margem': metricas['margem_percentual'],
+                'preco_efetivo': preco_efetivo
+            })
+            
+    # Ordenar por lucro decrescente e pegar os 5 primeiros
+    produtos_lucro.sort(key=lambda x: x['lucro'], reverse=True)
+    top_5_lucrativos = produtos_lucro[:5]
+    
+    context = {
+        'total_produtos': total_produtos,
+        'total_categorias': total_categorias,
+        'custo_medio': custo_medio,
+        'top_5_lucrativos': top_5_lucrativos,
+        'tx_base': tx_interna,
+    }
+    
+    return render(request, 'index.html', context)
+
 @login_required
 def produtos_view(request):
     # --- BLOCO ÚNICO DE PROCESSAMENTO (POST) ---

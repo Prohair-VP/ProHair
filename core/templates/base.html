@@ -58,6 +58,11 @@
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center h-16 gap-12">
                 <div class="flex items-center gap-6">
+                    <a href="{% url 'index' %}" class="{% if request.resolver_match.url_name == 'index' %}bg-[#003A4D] text-cyan-400{% else %}text-gray-400 hover:text-white{% endif %} px-4 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all outline-none">
+                        <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                        <span>Dashboard</span>
+                    </a>
+
                     <div class="relative" x-data="{ dropdownAberto: false }" @mouseenter="dropdownAberto = true" @mouseleave="dropdownAberto = false">
                         <button :class="dropdownAberto ? 'bg-[#003A4D] text-cyan-400' : 'text-gray-400 hover:text-white'"
                                 class="px-4 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all outline-none">

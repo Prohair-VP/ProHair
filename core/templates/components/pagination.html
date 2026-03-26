@@ -1,0 +1,55 @@
+        <div class="flex flex-wrap items-center justify-between bg-[#0a0c10]/50 border-t border-gray-800 px-6 py-4 gap-4">
+            <div class="flex items-center gap-6 text-sm text-gray-400">
+                <p>Mostrando <span class="font-bold text-gray-200">{{ page_obj.start_index }}</span> a <span
+                        class="font-bold text-gray-200">{{ page_obj.end_index }}</span> de <span
+                        class="font-bold text-gray-200">{{ page_obj.paginator.count }}</span></p>
+                <form method="GET" id="form-per-page" class="flex items-center gap-2">
+                    <input type="hidden" name="q" value="{{ search_query }}">
+                    <input type="hidden" name="categoria" value="{{ categoria_selecionada }}">
+                    {% if tx_interna_atual is not None %}
+                    <input type="hidden" name="tx_interna" value="{{ tx_interna_atual }}">
+                    <input type="hidden" name="frete" value="{{ frete_atual }}">
+                    {% endif %}
+                    <label>Mostrar:</label>
+                    <select name="per_page" onchange="this.form.submit()"
+                        class="bg-[#0f1115] border border-gray-700 text-gray-300 text-xs rounded-lg p-1 outline-none">
+                        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                        <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <form method="GET" class="flex items-center gap-2 text-sm text-gray-400">
+                    <input type="hidden" name="q" value="{{ search_query }}">
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    <input type="hidden" name="categoria" value="{{ categoria_selecionada }}">
+                    {% if tx_interna_atual is not None %}
+                    <input type="hidden" name="tx_interna" value="{{ tx_interna_atual }}">
+                    <input type="hidden" name="frete" value="{{ frete_atual }}">
+                    {% endif %}
+                    <label>Ir para:</label>
+                    <input type="number" name="page" min="1" max="{{ page_obj.paginator.num_pages }}"
+                        placeholder="{{ page_obj.number }}"
+                        class="w-12 bg-[#0f1115] border border-gray-700 text-gray-200 text-xs rounded p-1 text-center outline-none">
+                </form>
+
+                <nav class="isolate inline-flex -space-x-px rounded-md">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&q={{ search_query }}&categoria={{ categoria_selecionada }}{% if tx_interna_atual is not None %}&tx_interna={{ tx_interna_atual }}&frete={{ frete_atual }}{% endif %}"
+                        class="px-2 py-2 text-gray-400 border border-gray-800 rounded-l-md hover:bg-gray-800 transition"><span
+                            class="material-symbols-outlined text-sm">arrow_back_ios</span></a>
+                    {% endif %}
+                    {% for num in page_range %}
+                    <a href="?page={{ num }}&per_page={{ per_page }}&q={{ search_query }}&categoria={{ categoria_selecionada }}{% if tx_interna_atual is not None %}&tx_interna={{ tx_interna_atual }}&frete={{ frete_atual }}{% endif %}"
+                        class="px-4 py-2 text-sm font-semibold border border-gray-800 transition {% if num == page_obj.number %}{{ active_bg|default:'text-cyan-400 bg-cyan-950/40 z-10 border-cyan-900' }}{% else %}text-gray-400 hover:bg-gray-800{% endif %}">{{ num }}</a>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&q={{ search_query }}&categoria={{ categoria_selecionada }}{% if tx_interna_atual is not None %}&tx_interna={{ tx_interna_atual }}&frete={{ frete_atual }}{% endif %}"
+                        class="px-2 py-2 text-gray-400 border border-gray-800 rounded-r-md hover:bg-gray-800 transition"><span
+                            class="material-symbols-outlined text-sm">arrow_forward_ios</span></a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
