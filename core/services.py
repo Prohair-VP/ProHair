@@ -69,6 +69,17 @@ def excluir_produto(sku_alvo):
         return False
 
 
+def excluir_produtos_em_massa(lista_skus):
+    """
+    Exclui múltiplos produtos com base em uma lista de SKUs.
+    """
+    if lista_skus and isinstance(lista_skus, list):
+        # A exclusão em massa no Django retorna uma tupla com a quantidade deletada e um dict
+        qtd, _ = Produto.objects.filter(sku__in=lista_skus).delete()
+        return qtd
+    return 0
+
+
 def limpar_moeda(valor_string):
     """
     Converte string no formato brasileiro (1.234,56) para float.

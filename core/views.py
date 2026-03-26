@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .services import (
     obter_produtos, obter_categorias, salvar_novo_produto,
-    editar_produto, excluir_produto, limpar_moeda, calcular_metricas_shopee
+    editar_produto, excluir_produto, excluir_produtos_em_massa, limpar_moeda, calcular_metricas_shopee
 )
 
 
@@ -158,6 +158,12 @@ def shopee_view(request):
 
         if action == 'delete':
             excluir_produto(sku_original)
+            return redirect(f"{reverse('shopee')}?{next_url}" if next_url else 'shopee')
+            
+        if action == 'bulk_delete':
+            skus_to_delete = request.POST.getlist('skus')
+            if skus_to_delete:
+                excluir_produtos_em_massa(skus_to_delete)
             return redirect(f"{reverse('shopee')}?{next_url}" if next_url else 'shopee')
 
         sku_atual = request.POST.get('sku', '').strip()
