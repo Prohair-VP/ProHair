@@ -102,7 +102,7 @@
                         <th class="px-6 py-4 font-semibold w-28 text-red-400 text-center">TAXAS</th>
                         <th class="px-6 py-4 font-semibold w-28 text-emerald-400 text-right">LUCRO</th>
                         <th class="px-6 py-4 font-semibold w-24 text-orange-400 text-center">MARGEM %</th>
-                        <th class="px-6 py-4 font-semibold w-20 text-right">AÇÕES</th>
+                        <th class="px-6 py-4 font-semibold text-right whitespace-nowrap w-24">AÇÕES</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-800 text-sm">
@@ -115,15 +115,11 @@
                         </td>
 
                         <td class="px-6 py-4">
-                            {% if produto.categoria == 'Banana e mel' %}
-                            <span class="whitespace-nowrap inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-900/30 text-amber-500">Banana e mel</span>
-                            {% else %}
-                            <span class="whitespace-nowrap inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">{{ produto.categoria }}</span>
-                            {% endif %}
+                            {% include 'components/badge_categoria.html' with categoria=produto.categoria %}
                         </td>
 
-                        <td class="px-6 py-4 text-gray-400 font-medium">R$ {{ produto.preco_custo|floatformat:2 }}</td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-6 py-4 text-gray-400 font-medium whitespace-nowrap">R$ {{ produto.preco_custo|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-center whitespace-nowrap">
                             <span class="{% if produto.preco_promocional > 0 %}text-gray-600 line-through text-xs{% else %}text-gray-300 font-bold{% endif %}">R$ {{ produto.preco_shopee|default:"0.00"|floatformat:2 }}</span>
                         </td>
 
@@ -135,9 +131,9 @@
                             {% endif %}
                         </td>
 
-                        <td class="px-6 py-4 text-red-500/80 font-medium text-center">R$ {{ produto.total_taxas|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-red-500/80 font-medium text-center whitespace-nowrap">R$ {{ produto.total_taxas|floatformat:2 }}</td>
 
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
                             <span class="font-black {% if produto.lucro_reais > 0 %}text-emerald-400{% else %}text-red-500{% endif %}">R$ {{ produto.lucro_reais|floatformat:2 }}</span>
                         </td>
 
@@ -145,8 +141,8 @@
                             <span class="px-2 py-1 rounded-md text-xs font-black {% if produto.margem_percentual >= 36 %}bg-emerald-950/40 text-emerald-400 border border-emerald-500/20{% elif produto.margem_percentual >= 26 %}bg-yellow-950/40 text-yellow-400 border border-yellow-500/20{% else %}bg-red-950/40 text-red-400 border border-red-500/20{% endif %}">{{ produto.margem_percentual|floatformat:1 }}%</span>
                         </td>
 
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2 text-gray-600">
+                        <td class="px-6 py-4 text-right whitespace-nowrap w-24">
+                            <div class="flex items-center justify-end gap-3 text-gray-500">
                                 <button @click="
                                     editando = true; 
                                     modalAberto = true; 
@@ -156,10 +152,15 @@
                                         nome: '{{ produto.nome_produto|escapejs }}', 
                                         categoria: '{{ produto.categoria|escapejs }}', 
                                         preco: '{{ produto.preco_custo|floatformat:2 }}',
-                                        precoShopee: '{{ produto.preco_shopee|default:" 0"|floatformat:2 }}',
-                                    precoPromo: '{{ produto.preco_promocional|default:"0"|floatformat:2 }}' }"
-                                    class="hover:text-orange-400 transition">
+                                        precoShopee: '{{ produto.preco_shopee|default:"0.00"|floatformat:2 }}',
+                                        precoPromo: '{{ produto.preco_promocional|default:"0.00"|floatformat:2 }}' 
+                                    }"
+                                    class="hover:text-orange-400 transition" title="Editar">
                                     <span class="material-symbols-outlined text-lg">edit</span>
+                                </button>
+                                <button @click="modalExcluir = true; skuOriginal = '{{ produto.sku }}'; nomeParaExcluir = '{{ produto.nome_produto|escapejs }}'"
+                                        class="hover:text-red-500 transition" title="Excluir">
+                                    <span class="material-symbols-outlined text-lg">delete</span>
                                 </button>
                             </div>
                         </td>

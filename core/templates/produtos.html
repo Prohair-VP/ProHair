@@ -90,19 +90,11 @@
                     <tr class="hover:bg-white/[0.02] transition-colors {% if forloop.counter|divisibleby:2 %}bg-[#0a0c10]/30{% endif %}">
                         <td class="px-6 py-4 font-bold text-gray-200">{{ produto.sku }}</td>
                         <td class="px-6 py-4 text-gray-400 truncate max-w-xs">{{ produto.nome_produto }}</td>
-                        <td class="px-6 py-4">
-                            {% if produto.categoria == 'Banana e mel' %}
-                                <span class="whitespace-nowrap inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-amber-900/30 text-amber-500">Banana e mel</span>
-                            {% elif produto.categoria == 'Kits' %}
-                                <span class="whitespace-nowrap inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-blue-900/30 text-blue-400">Kits</span>
-                            {% elif produto.categoria == 'Utensílios' %}
-                                <span class="whitespace-nowrap inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-gray-700/50 text-gray-300">Utensílios</span>
-                            {% else %}
-                                <span class="whitespace-nowrap inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-slate-800 text-slate-300">{{ produto.categoria }}</span>
-                            {% endif %}
+                        <td class="px-6 py-4 text-center items-center flex justify-center">
+                            {% include 'components/badge_categoria.html' with categoria=produto.categoria size="text-[11px]" %}
                         </td>
-                        <td class="px-6 py-4 text-[#00E676] font-semibold">{{ produto.preco_custo|floatformat:2 }}</td>
-                        <td class="px-6 py-4 text-gray-500">0,00</td>
+                        <td class="px-6 py-4 text-[#00E676] font-semibold whitespace-nowrap">R$ {{ produto.preco_custo|floatformat:2 }}</td>
+                        <td class="px-6 py-4 text-gray-500 whitespace-nowrap">R$ 0,00</td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3 text-gray-500">
                                 <button @click="

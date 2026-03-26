@@ -147,9 +147,15 @@ def shopee_view(request):
         action = request.POST.get('action')
         sku_original = request.POST.get('sku_original')
 
+        if action == 'delete':
+            excluir_produto(sku_original)
+            return redirect('shopee')
+
         sku_atual = request.POST.get('sku', '').strip()
         nome = request.POST.get('nome_produto', '').strip()
         categoria = request.POST.get('categoria', '').strip()
+        
+        # Limpeza de moeda para todos os campos
         preco_custo = limpar_moeda(request.POST.get('preco_custo', '0'))
         preco_shopee = limpar_moeda(request.POST.get('preco_shopee', '0'))
         preco_promo = limpar_moeda(request.POST.get('preco_promocional', '0'))
@@ -165,6 +171,8 @@ def shopee_view(request):
 
         if action == 'edit':
             editar_produto(sku_original, dados_novos)
+        else:
+            salvar_novo_produto(dados_novos)
 
         return redirect('shopee')
 

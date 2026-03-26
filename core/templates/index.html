@@ -92,12 +92,16 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="font-bold text-gray-200">{{ item.produto.nome_produto }}</div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">{{ item.produto.sku }} • {{ item.produto.categoria }}</div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[10px] text-gray-500 uppercase tracking-widest">{{ item.produto.sku }}</span>
+                                <span class="text-gray-800">•</span>
+                                {% include 'components/badge_categoria.html' with categoria=item.produto.categoria size="text-[9px]" %}
+                            </div>
                         </td>
-                        <td class="px-6 py-4 text-center font-medium text-gray-300">
+                        <td class="px-6 py-4 text-center font-medium text-gray-300 whitespace-nowrap">
                             R$ {{ item.preco_efetivo|floatformat:2 }}
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
                             <span class="font-black text-emerald-400">R$ {{ item.lucro|floatformat:2 }}</span>
                         </td>
                         <td class="px-6 py-4 text-center">

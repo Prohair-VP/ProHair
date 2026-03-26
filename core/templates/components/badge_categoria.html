@@ -1,0 +1,19 @@
+{% with cat=categoria|lower %}
+<span class="whitespace-nowrap inline-block px-2.5 py-0.5 rounded-full font-bold tracking-tight {{ size|default:'text-[10px]' }}
+    {% if cat == 'banana e mel' %}bg-amber-900/40 text-amber-500 border border-amber-500/20
+    {% elif cat == 'acqualift' %}bg-sky-900/40 text-sky-400 border border-sky-500/20
+    {% elif cat == 'bb cream' %}bg-pink-900/40 text-pink-400 border border-pink-500/20
+    {% elif cat == 'black silver' %}bg-slate-300/10 text-slate-300 border border-slate-500/20
+    {% elif cat == 'classic' %}bg-green-900/40 text-green-400 border border-green-500/20
+    {% elif cat == 'extreme power' %}bg-blue-600/30 text-blue-400 border border-blue-500/30
+    {% elif cat == 'green' %}bg-green-950 text-green-500 border border-green-800/20
+    {% elif cat == 'magic apple' %}bg-red-950 text-red-500 border border-red-800/20
+    {% elif cat == 'nano sos' %}bg-emerald-900/40 text-emerald-400 border border-emerald-500/20
+    {% elif cat == 'ouro 24k' %}bg-yellow-500/10 text-yellow-500 border border-yellow-500/20
+    {% elif cat == 'plástica dos fios' or cat == 'plastica dos fios' %}bg-purple-900/40 text-purple-400 border border-purple-500/20
+    {% elif cat == 'quelantus' %}bg-gray-800 text-gray-400 border border-gray-700
+    {% elif cat == 'red experience' %}bg-rose-900/30 text-rose-400 border border-rose-500/20
+    {% else %}bg-slate-800 text-slate-400{% endif %}">
+    {{ categoria }}
+</span>
+{% endwith %}
