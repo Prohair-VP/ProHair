@@ -5,7 +5,8 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from .services import (
     obter_produtos, obter_categorias, salvar_novo_produto,
-    editar_produto, excluir_produto, excluir_produtos_em_massa, limpar_moeda, calcular_metricas_shopee
+    editar_produto, excluir_produto, excluir_produtos_em_massa, editar_precos_em_massa,
+    limpar_moeda, calcular_metricas_shopee
 )
 
 
@@ -165,6 +166,18 @@ def shopee_view(request):
             if skus_to_delete:
                 excluir_produtos_em_massa(skus_to_delete)
             return redirect(f"{reverse('shopee')}?{next_url}" if next_url else 'shopee')
+            
+        if action == 'bulk_update_prices':
+            skus_to_update = request.POST.getlist('skus')
+            if skus_to_update:
+                preco_shopee_raw = request.POST.get('bulk_preco_shopee', '').strip()
+                preco_promo_raw = request.POST.get('bulk_preco_promocional', '').strip()
+                
+                preco_shopee = limpar_moeda(preco_shopee_raw) if preco_shopee_raw else None
+                preco_promo = limpar_moeda(preco_promo_raw) if preco_promo_raw else None
+                
+                editar_precos_em_massa(skus_to_update, preco_shopee, preco_promo)
+            return redirect(f"{reverse('shopee')}?{next_url}" if next_url else 'shopee')
 
         sku_atual = request.POST.get('sku', '').strip()
         nome = request.POST.get('nome_produto', '').strip()
@@ -197,6 +210,7 @@ def shopee_view(request):
     filtros = {
         'q': request.GET.get('q', ''),
         'categoria': request.GET.get('categoria', ''),
+        'tipo': request.GET.get('tipo', ''),
     }
 
     # Parâmetros customizáveis do simulador
@@ -276,6 +290,11 @@ def shopee_view(request):
         'search_query': filtros['q'],
         'categorias': todas_categorias,
         'categoria_selecionada': filtros['categoria'],
+        'tipo_selecionado': filtros['tipo'],
+        'tipos_de_produto': [
+            'Shampoo', 'Condicionador', 'Máscara', 'Leave-in', 
+            'Ampola', 'Restaurador', 'Perfume', 'Sérum'
+        ],
         'tx_interna_atual': f"{tx_interna:.1f}".replace('.', ','),
         'frete_atual': f"{frete:.2f}".replace('.', ','),
         'marketplace_nome': 'Shopee Official',

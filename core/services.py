@@ -1,23 +1,44 @@
 # services.py — Camada de serviço usando Django ORM
+from django.db.models import Q
 from core.models import Produto
 
 
 def obter_produtos(filtros=None):
     """
     Retorna queryset de produtos. Aceita dicionário de filtros opcionais.
-    Exemplo: {'categoria': 'Banana e mel', 'q': 'shampoo'}
+    Exemplo: {'categoria': 'Banana e mel', 'q': 'shampoo', 'tipo': 'shampoo'}
     """
     qs = Produto.objects.all()
 
     if filtros:
         busca = filtros.get('q', '').strip()
         categoria = filtros.get('categoria', '').strip()
+        tipo = filtros.get('tipo', '').strip().lower()
 
         if busca:
-            qs = qs.filter(nome_produto__icontains=busca) | qs.filter(sku__icontains=busca)
+            # Importante: Como já estamos filtrando por duas colunas, vamos garantir que o | funcione bem
+            qs = qs.filter(Q(nome_produto__icontains=busca) | Q(sku__icontains=busca))
 
         if categoria:
             qs = qs.filter(categoria=categoria)
+            
+        if tipo:
+            if tipo == 'shampoo':
+                qs = qs.filter(Q(nome_produto__icontains='shampoo') | Q(nome_produto__icontains=' sh ') | Q(nome_produto__istartswith='sh '))
+            elif tipo == 'condicionador':
+                qs = qs.filter(Q(nome_produto__icontains='condicionar') | Q(nome_produto__icontains='condicionador') | Q(nome_produto__icontains=' cond ') | Q(nome_produto__istartswith='cond '))
+            elif tipo == 'leave-in':
+                qs = qs.filter(Q(nome_produto__icontains='leave-in') | Q(nome_produto__icontains='leavein'))
+            elif tipo == 'ampola':
+                qs = qs.filter(nome_produto__icontains='ampola')
+            elif tipo == 'restaurador':
+                qs = qs.filter(nome_produto__icontains='restaurador')
+            elif tipo == 'perfume':
+                qs = qs.filter(nome_produto__icontains='perfume')
+            elif tipo == 'máscara' or tipo == 'mascara':
+                qs = qs.filter(Q(nome_produto__icontains='mascara') | Q(nome_produto__icontains='máscara') | Q(nome_produto__icontains='masc '))
+            elif tipo == 'sérum' or tipo == 'serum':
+                qs = qs.filter(Q(nome_produto__icontains='serum') | Q(nome_produto__icontains='sérum') | Q(nome_produto__icontains='reparador'))
 
     return qs
 
@@ -77,6 +98,22 @@ def excluir_produtos_em_massa(lista_skus):
         # A exclusão em massa no Django retorna uma tupla com a quantidade deletada e um dict
         qtd, _ = Produto.objects.filter(sku__in=lista_skus).delete()
         return qtd
+    return 0
+
+
+def editar_precos_em_massa(lista_skus, preco_shopee=None, preco_promo=None):
+    """
+    Edita os preços (Shopee e Promocional) de múltiplos produtos com base nos SKUs.
+    """
+    if lista_skus and isinstance(lista_skus, list):
+        dados_atualizacao = {}
+        if preco_shopee is not None:
+            dados_atualizacao['preco_shopee'] = preco_shopee
+        if preco_promo is not None:
+            dados_atualizacao['preco_promocional'] = preco_promo
+            
+        if dados_atualizacao:
+            return Produto.objects.filter(sku__in=lista_skus).update(**dados_atualizacao)
     return 0
 
 
